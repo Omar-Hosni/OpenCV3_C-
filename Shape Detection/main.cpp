@@ -25,6 +25,9 @@ void getContours(const Mat &src, Mat &dest)
 	//if area is above a certain value then consider it a shape
 	vector<vector<Point>> contourPoly(contours.size());
 	vector<Rect> boundRect(contours.size());
+	
+	string objectType;
+
 	for (int i = 0; i < contours.size(); i++)
 	{
 		int area = contourArea(contours[i]);
@@ -42,6 +45,21 @@ void getContours(const Mat &src, Mat &dest)
 			cout << "the bounded rect of shape " << i << " is " << boundRect[i] << endl;
 			rectangle(dest, boundRect[i].tl(), boundRect[i].br(), Scalar(0, 255, 0), 5);
 
+			int objCorner = (int)contourPoly[i].size();
+
+			if (objCorner == 3) objectType = "Triangle";
+			
+			else if (objCorner == 4) {
+				float aspectRatio = boundRect[i].width / boundRect[i].height;
+				
+				if (aspectRatio >= 0.9 && aspectRatio <= 1.1) objectType = "Square";
+				else objectType = "Rectangle";
+			}
+			
+			else if (objCorner > 4) objectType = "Circle";
+
+			putText(dest, objectType, { boundRect[i].x, boundRect[i].y - 5 }, FONT_HERSHEY_DUPLEX, 0.75, Scalar(0, 69, 255), 2);
+
 		}
 	}
 
@@ -50,18 +68,18 @@ void getContours(const Mat &src, Mat &dest)
 int main()
 {
 	Mat img = imread("shapes2.png");
-	Mat grayImg, blurImg, cannyImg, dilImg;
+	Mat processedImg;
 
 	//preprocessing
-	cvtColor(img, grayImg, COLOR_BGR2GRAY);
-	GaussianBlur(grayImg, blurImg, Size(3, 3), 3, 0);
-	Canny(blurImg, cannyImg, 25, 75);
+	cvtColor(img, processedImg, COLOR_BGR2GRAY);
+	GaussianBlur(processedImg, processedImg, Size(3, 3), 3, 0);
+	Canny(processedImg, processedImg, 25, 75);
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(2, 2));
-	dilate(cannyImg, dilImg, kernel);
+	dilate(processedImg, processedImg, kernel);
 
 	Mat finalImg;
 	//get contour
-	getContours(dilImg, img);
+	getContours(processedImg, img);
 
 
 	imshow("img", img);
