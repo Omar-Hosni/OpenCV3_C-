@@ -114,6 +114,19 @@ double compare_img(const Mat etalon_lab, const Mat img_lab)
 }
 
 
+void histogram(const Mat img, Mat& histo)
+{
+	histo = Mat::zeros(256, 1, CV_32S);
+
+	for (int i = 0; i < img.rows; i++)
+	{
+		for (int j = 0; j < img.cols; j++)
+		{
+			int v = img.at<uchar>(i, j);
+			histo.at<int>(v)++;
+		}
+	}
+}
 
 int main()
 {
@@ -133,6 +146,23 @@ int main()
 		imshow("res"+to_string(i), img2);
 
 	}
+	
+	Mat img = imread("orange1.jpg");
+	Mat eqHistImg;
+
+
+	vector<Mat> chs;
+	split(img, chs);
+
+	equalizeHist(chs[0], chs[0]);
+	equalizeHist(chs[1], chs[1]);
+	equalizeHist(chs[2], chs[2]);
+
+	Mat dest;
+	merge(chs, dest);
+
+	Histo::showHisto(img);
+	Histo::showHisto(dest);
 
 	waitKey();
 }
